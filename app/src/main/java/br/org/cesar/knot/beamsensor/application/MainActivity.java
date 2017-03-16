@@ -8,6 +8,7 @@ import android.support.v7.widget.Toolbar;
 import android.view.LayoutInflater;
 import android.view.View;
 
+import org.json.JSONException;
 import org.json.JSONObject;
 
 import br.org.cesar.knot.beamsensor.R;
@@ -32,9 +33,13 @@ public class MainActivity extends AppCompatActivity {
         });
 
         BeamSensorFilter f = new BeamSensorFilter();
-        f.build("CDF","true", BeamSensorFilter.FilterCompareValueMode.Equal, BeamSensorFilter.FilterLinkType.And);
-        f.build("abc",1, BeamSensorFilter.FilterCompareValueMode.Equal, BeamSensorFilter.FilterLinkType.None);
-        JSONObject query = f.getQuery();
+        f.build("CDF","true", BeamSensorFilter.FilterCompareValueMode.Equal, BeamSensorFilter.FilterLinkType.Or,"abc",1, BeamSensorFilter.FilterCompareValueMode.Equal);
+        f.build("CDF","true", BeamSensorFilter.FilterCompareValueMode.Equal, BeamSensorFilter.FilterLinkType.And,"abc",1, BeamSensorFilter.FilterCompareValueMode.Equal);
+        try {
+            JSONObject query = f.getQuery();
+        } catch (JSONException e) {
+            e.printStackTrace();
+        }
     }
 
 }
