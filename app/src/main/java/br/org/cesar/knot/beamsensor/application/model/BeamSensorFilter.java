@@ -18,11 +18,11 @@ import java.util.logging.Filter;
 public class BeamSensorFilter {
 
     public enum FilterLinkType {
-        And,Or,None
+        And,Or
     }
 
     public enum FilterCompareValueMode {
-        Equal,GreatThan,LessThan,Contains
+        Equal,GreatThan,LessThan,In,Like
     }
 
     private List<FilterItem> items;
@@ -103,14 +103,17 @@ public class BeamSensorFilter {
         for (FilterItem item : items) {
             FilterItem sibling = item.getSibling();
             if (sibling != null) {
-                array.put(create(item));
-                array.put(create(item.getSibling()));
                 if (item.getSiblingLinkType() == FilterLinkType.Or) {
+                    array.put(create(item));
+                    array.put(create(item.getSibling()));
                     query.put("$or", array);
+                }else if (item.getSiblingLinkType() == FilterLinkType.And) {
+                    append(item,query);
+                    append(sibling,query);
                 }
-                else{
-                    query.put("",array);
-                }
+            }
+            else{
+                append(item,query);
             }
         }
         return query;
@@ -118,17 +121,43 @@ public class BeamSensorFilter {
 
     private JSONObject create(FilterItem item){
         JSONObject query = new JSONObject();
-        if(item.getCompareValueMode() == FilterCompareValueMode.Equal){
-            Set<? extends Map.Entry<String, ?>> entries = item.getKeyValueMap().entrySet();
-            for (Map.Entry<String, ?> entry : entries) {
-                try {
+        createComparativeValueObject(item, query);
+        return query;
+    }
+
+    private void append(FilterItem item,JSONObject query){
+        createComparativeValueObject(item, query);
+    }
+
+    private void createComparativeValueObject(FilterItem item, JSONObject query) {
+        Set<? extends Map.Entry<String, ?>> entries = item.getKeyValueMap().entrySet();
+        for (Map.Entry<String, ?> entry : entries) {
+            try {
+                if (item.getCompareValueMode() == FilterCompareValueMode.Equal) {
                     query.put(entry.getKey(), entry.getValue());
-                } catch (JSONException e) {
-                    e.printStackTrace();
+                }else if (item.getCompareValueMode() == FilterCompareValueMode.GreatThan) {
+                    JSONObject greaterThan = new JSONObject();
+                    greaterThan.put("$gt",entry.getValue());
+                    query.put(entry.getKey(), greaterThan);
+                }else if (item.getCompareValueMode() == FilterCompareValueMode.LessThan) {
+                    JSONObject lessThan = new JSONObject();
+                    lessThan.put("$lt",entry.getValue());
+                    query.put(entry.getKey(), lessThan);
+                }else if (item.getCompareValueMode() == FilterCompareValueMode.In) {
+                    JSONObject in = new JSONObject();
+                    JSONArray array = new JSONArray();
+                    ArrayList list = (ArrayList) entry.getValue();
+                    for (Object o : list) {
+                        array.put(o);
+                    }
+                    in.put("$in", array);
+                    query.put(entry.getKey(), in);
+                }else if (item.getCompareValueMode() == FilterCompareValueMode.Like) {
+                    query.put(entry.getKey(), "/ˆ"+ entry.getValue().toString()+ "/");
                 }
+            } catch (JSONException e) {
+                e.printStackTrace();
             }
         }
-
-        return query;
     }
 }

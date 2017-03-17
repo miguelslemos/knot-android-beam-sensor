@@ -11,7 +11,11 @@ import android.view.View;
 import org.json.JSONException;
 import org.json.JSONObject;
 
+import java.lang.reflect.Array;
+import java.util.ArrayList;
+
 import br.org.cesar.knot.beamsensor.R;
+import br.org.cesar.knot.beamsensor.application.controller.BeamController;
 import br.org.cesar.knot.beamsensor.application.model.BeamSensorFilter;
 
 public class MainActivity extends AppCompatActivity {
@@ -33,10 +37,18 @@ public class MainActivity extends AppCompatActivity {
         });
 
         BeamSensorFilter f = new BeamSensorFilter();
-        f.build("CDF","true", BeamSensorFilter.FilterCompareValueMode.Equal, BeamSensorFilter.FilterLinkType.Or,"abc",1, BeamSensorFilter.FilterCompareValueMode.Equal);
-        f.build("CDF","true", BeamSensorFilter.FilterCompareValueMode.Equal, BeamSensorFilter.FilterLinkType.And,"abc",1, BeamSensorFilter.FilterCompareValueMode.Equal);
+        ArrayList range = new ArrayList();
+        range.add("10");
+        range.add("13");
+        range.add("1");
+        //f.build("value1",10, BeamSensorFilter.FilterCompareValueMode.GreatThan);
+        f.build("range",range, BeamSensorFilter.FilterCompareValueMode.In);
+        f.build("name","car", BeamSensorFilter.FilterCompareValueMode.Like);
+        //f.build("age",10, BeamSensorFilter.FilterCompareValueMode.GreatThan, BeamSensorFilter.FilterLinkType.Or,"index",1, BeamSensorFilter.FilterCompareValueMode.Equal);
+        //f.build("rate",2, BeamSensorFilter.FilterCompareValueMode.LessThan, BeamSensorFilter.FilterLinkType.And,"item",1, BeamSensorFilter.FilterCompareValueMode.Equal);
         try {
             JSONObject query = f.getQuery();
+            System.out.println(query);
         } catch (JSONException e) {
             e.printStackTrace();
         }
